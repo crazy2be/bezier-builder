@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+		<title>CSS cubic-bezier Builder</title>
+		<style>
+body {
+	font-family: arial;
+}
+h2 {
+	margin: 20px 0 5px 0;
+}
+ol {
+	margin: 5px 0 0 0;
+}
+ol li {
+	font-size: 14px;
+	line-height: 1.5;
+}
+.coordinate-plane {
+	position: relative;
+	left: 30px;
+	height: 412px;
+	width: 412px;
+}
+.knob {
+	background: #fff;
+	position: absolute;
+	display: block;
+	height: 10px;
+	width: 10px;
+	border: 1px solid #333;
+	-moz-border-radius: 50px;
+	border-radius: 50px;
+	-webkit-transform: translate(-5px,-4px);
+	-moz-transform: translate(-5px,-4px);
+}
+.p1, .p2 {
+	background: #00AEDB;
+	z-index: 50;
+}
+.p2 {
+	background: #666;
+}
+#p1X, #p1Y {
+	color: #00AEDB;
+}
+#p2X, #p2Y {
+	color: #666;
+}
+.p0 {
+	left: 0;
+	top: 400px;
+}
+.p1 {
+	left: 40px;
+	top: 360px;
+}
+.p2 {
+	left: 100px;
+	top: 40px;
+}
+.p3 {
+	left: 400px;
+	top: 0;
+}
+canvas {
+	border: 1px solid #333;
+	border-top: 1px dashed #333;
+	border-right: 1px dashed #333;
+}
+.canned-function {
+	color: #666;
+}
+.css {
+	margin: 0;
+	padding-top: 30px;
+	font-size: 16px;
+}
+.box {
+	position: relative;
+	left: 0;
+	height: 40px;
+	width: 40px;
+	background: #ccc;
+	border: 1px solid #333;
+	-webkit-transition: all 1s linear;
+	-moz-transition: all 1s linear;
+}
+.custom {
+	background: #00AEDB;
+}
+.linear {
+	-moz-transition: all 1s linear;
+	-webkit-transition: all 1s linear;
+}
+.ease-in {
+	-moz-transition: all 1s ease-in;
+	-webkit-transition: all 1s ease-in;
+}
+.ease-out {
+	-moz-transition: all 1s ease-out;
+	-webkit-transition: all 1s ease-out;
+}
+.ease-in-out {
+	-moz-transition: all 1s ease-in-out;
+	-webkit-transition: all 1s ease-in-out;
+}
+.moveBox .box {
+	left: 400px;
+}
+.graph {
+	position: relative;
+	height: 432px;
+	width: 432px;
+}
+.x-axis {
+	position: absolute;
+	left: 32px;
+	bottom: 0;
+	height: 30px;
+	width: 400px;
+}
+.x-axis .marker, .x-axis .big-marker {
+	height: 15px;
+	width: 39px;
+	border-right: 1px solid #333;
+	float: left;
+}
+.x-axis .big-marker {
+	height: 30px;
+}
+.y-axis {
+	position: absolute;
+	width: 30px;
+	height: 400px;
+}
+.y-axis .big-marker, .y-axis .marker {
+	height: 39px;
+	border-top: 1px solid #333;
+}
+.y-axis .marker {
+	width: 15px;
+	margin-left: 15px;
+}
+.demo {
+	margin-top: -20px;
+}
+.demo p {
+	margin-bottom: 5px;
+}
+.clear {
+	clear: both;
+}
+.subheader {
+	margin: 0 0 30px 0;
+	padding: 0;
+}
+.header {
+	position: relative;
+}
+.back-to {
+	position: absolute;
+	top: 30px;
+	right: 0;
+}
+.grid-system .title-row {
+	margin-bottom: 0;
+}
+		</style>
+</head>
+<body style="cursor: auto;">
+	<div class="grid-system clearfix">
+		<div class="row title-row">
+			<div class="col span-12">
+				<h2>CSS cubic-bezier Builder</h2>
+				<p class="subheader">Drag the colored knobs to adjust the curve. </p>
+			</div>
+		</div>
+
+		<div class="row" id="bezier-builder">
+			<div class="col span-12">
+				<div class="graph col span-5">
+					<div class="x-axis">
+						<div class="marker"></div>
+						<div class="marker"></div>
+						<div class="marker"></div>
+						<div class="marker"></div>
+						<div class="big-marker"></div>
+						<div class="marker"></div>
+						<div class="marker"></div>
+						<div class="marker"></div>
+						<div class="marker"></div>
+						<div class="big-marker"></div>
+					</div>
+					<div class="y-axis">
+						<div class="big-marker"></div>
+						<div class="marker"></div>
+						<div class="marker"></div>
+						<div class="marker"></div>
+						<div class="marker"></div>
+						<div class="big-marker"></div>
+						<div class="marker"></div>
+						<div class="marker"></div>
+						<div class="marker"></div>
+						<div class="marker"></div>
+					</div>
+
+					<div class="coordinate-plane">
+						<a href="#" class="knob p0"></a>
+						<a href="#" class="knob p1 ui-draggable" style="left: 97px; top: 0px;"></a>
+						<a href="#" class="knob p2 ui-draggable"></a>
+						<a href="#" class="knob p3"></a>
+
+						<canvas height="400" width="400" id="bezierCurve"></canvas>
+					</div>
+				</div>
+
+				<div class="demo col span-6">
+					<p><a href="#" id="animateBox">Click here</a> to compare transition timing functions:</p>
+
+					<p id="customBezier">cubic-bezier(.24, 1, .25, .90)</p>
+					<div class="box custom" style="-webkit-transition: left 1s cubic-bezier(0.24, 1, 0.25, 0.9);"></div>
+
+					<p><a href="#" class="canned-function" data-easing="0,0,1,1">linear</a>:</p>
+					<div class="box linear"></div>
+
+					<p><a href="#" class="canned-function" data-easing="0,0,.58,1">ease-out</a>:</p>
+						<div class="box ease-out"></div>
+
+					<p><a href="#" class="canned-function" data-easing=".42,0,.58,1">ease-in-out</a>:</p>
+					<div class="box ease-in-out"></div>
+
+					<p><a href="#" class="canned-function" data-easing=".42,0,1,1">ease-in</a>:</p>
+					<div class="box ease-in"></div>
+				</div>
+
+				<div class="css clear">
+					<code>-webkit-transition: all 1s <span id="cubicBezier">cubic-bezier(<span id="p1X" class="p1X">.24</span>, <span id="p1Y" class="p1Y">1</span>, <span id="p2X" class="p2X">.25</span>, <span id="p2Y" class="p2Y">.90</span>)</span>;</code>
+					<br>
+					<code>-moz-transition: all 1s <span id="cubicBezier">cubic-bezier(<span id="p1X" class="p1X">.24</span>, <span id="p1Y" class="p1Y">1</span>, <span id="p2X" class="p2X">.25</span>, <span id="p2Y" class="p2Y">.90</span>)</span>;</code>
+					<br>
+				</div>
+
+				<h2>References</h2>
+				<ol>
+					<li><a href="http://developer.apple.com/library/safari/#documentation/InternetWeb/Conceptual/SafariVisualEffectsProgGuide/Transitions/Transitions.html#//apple_ref/doc/uid/TP40008032-CH4-SW11" target="_blank">Safari CSS Visual Effects Guide</a></li>
+					<li><a href="http://developer.apple.com/library/safari/#documentation/AppleApplications/Reference/SafariCSSRef/Articles/Functions.html#//apple_ref/css/func/cubic-bezier" target="_blank">Safari cubic-bezier reference</a></li>
+				</ol>
+			</div>
+		</div>
+	</div>
+	<script src="js/jquery-1.4.4.min.js"></script>
+	<script src="js/jquery-ui-1.8.9.custom.min.js"></script>
+	<script>
+var $p1, $p2, box, $customBezier, $cubicBezier;
+
+$(function() {
+
+	var ctx = $("#bezierCurve").get(0).getContext("2d");
+
+	box = $(".box").get(0);
+	$p1 = $(".p1");
+	$p2 = $(".p2");
+	$customBezier = $("#customBezier");
+	$cubicBezier = $("#cubicBezier");
+
+	renderWrap(ctx);
+	setTransitionFn();
+	setDemoValue();
+
+	$(".p1, .p2").draggable({
+		containment: 'parent',
+		drag: function(event, ui) {
+			renderWrap(ctx);
+			setDemoValue();
+		},
+		stop: function(){
+			renderWrap(ctx);
+			setTransitionFn();
+			setDemoValue();
+		}
+	});
+
+	$(".canned-function").click(function(e) {
+		e.preventDefault();
+		var vals = $(this).attr("-data-easing").split(",");
+		$p1.css("left", vals[0] * 400);
+		$p1.css("top", 	(1 - vals[1]) * 400);
+		$p2.css("left", vals[2] * 400);
+		$p2.css("top", 	(1 - vals[3]) * 400);
+		renderWrap(ctx);
+		setTransitionFn();
+		setDemoValue();
+	});
+
+	$("#animateBox").click(function(e){
+		e.preventDefault();
+		var $body = $("body");
+
+		$body.addClass("moveBox");
+
+		setTimeout(function() {
+			$body.removeClass("moveBox");
+			// console.log($(".box").get(1).style.webkitTransition)
+		}, 2000);
+	});
+});
+
+function setDemoValue() {
+	$customBezier.html($cubicBezier.text());
+}
+
+function setTransitionFn() {
+	box.style.webkitTransition = "left 1s cubic-bezier(" + $("#p1X").html() + "," + $("#p1Y").html() + ","+$("#p2X").html() + "," + $("#p2Y").html() + ")";
+	box.style.MozTransition = "left 1s cubic-bezier(" + $("#p1X").html() + "," + $("#p1Y").html() + ","+$("#p2X").html() + "," + $("#p2Y").html() + ")";
+}
+
+// this just removes leading 0 and truncates values
+function adjustValue(val) {
+	val = val.toFixed(2);
+	val = val.toString().replace("0.", ".").replace("1.00", "1").replace(".00", "0");
+	return val;
+}
+
+function renderWrap(ctx) {
+	var p1 = $p1.position(),
+		p2 = $p2.position();
+
+	render(ctx, {
+		x: p1.left,
+		y: p1.top
+	}, {
+		x: p2.left,
+		y: p2.top
+	});
+};
+
+function render(ctx, p1, p2) {
+	var ctx = ctx;
+	ctx.clearRect(0,0,400,400);
+
+	ctx.beginPath();
+	ctx.lineWidth = 5;
+	ctx.strokeStyle = "#333";
+	ctx.moveTo(0,400);
+	// p1 (x,y) p2 (x,y)
+	ctx.bezierCurveTo(p1.x,p1.y,p2.x,p2.y,400,0);
+	ctx.stroke();
+	ctx.closePath();
+
+	ctx.beginPath();
+	ctx.strokeStyle = "#999";
+	ctx.lineWidth = 1;
+	ctx.moveTo(0,400);
+	// p1 (x,y)
+	ctx.lineTo(p1.x + 5, p1.y + 5);
+	ctx.stroke();
+
+	ctx.moveTo(400,0);
+	// p2 (x,y)
+	ctx.lineTo(p2.x + 5, p2.y + 5 );
+	ctx.stroke();
+	ctx.closePath();
+
+	if($.browser.mozilla) {
+		$(".p1X").html( adjustValue( (p1.x) / 400) );
+		$(".p1Y").html( adjustValue( 1 - (p1.y) / 400) );
+		$(".p2X").html( adjustValue( (p2.x) / 400) );
+		$(".p2Y").html( adjustValue( 1 - (p2.y) / 400) );
+	} else {
+		$(".p1X").html( adjustValue( (p1.x + 5) / 400) );
+		$(".p1Y").html( adjustValue( 1 - (p1.y + 4) / 400) );
+		$(".p2X").html( adjustValue( (p2.x + 5) / 400) );
+		$(".p2Y").html( adjustValue( 1 - (p2.y + 4) / 400) );
+	}
+}
+	</script>
+</body>
+</html>
