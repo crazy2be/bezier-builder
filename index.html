@@ -9,15 +9,7 @@ body {
 	font-family: arial;
 }
 .header {
-	display: table;
 	margin: 20px;
-}
-.header h2 {
-	display: table-cell;
-}
-.header p {
-	display: table-cell;
-	padding-left: 20px;
 }
 .coordinate-plane {
 	position: relative;
@@ -34,8 +26,6 @@ body {
 	border: 1px solid #333;
 	-moz-border-radius: 50px;
 	border-radius: 50px;
-	-webkit-transform: translate(-5px,-4px);
-	-moz-transform: translate(-5px,-4px);
 	cursor: move;
 }
 .p1, .p2 {
@@ -52,8 +42,8 @@ body {
 	color: #666;
 }
 .p0 {
-	left: 0;
-	top: 400px;
+	left: -5px;
+	top: 395px;
 }
 .p1 {
 	left: 40px;
@@ -64,8 +54,8 @@ body {
 	top: 40px;
 }
 .p3 {
-	left: 400px;
-	top: 0;
+	left: 395px;
+	top: -5px;
 }
 canvas {
 	border: 1px solid #333;
@@ -166,7 +156,6 @@ canvas {
 <body style="cursor: auto;">
 	<div class="header">
 		<h2>CSS cubic-bezier Builder</h2>
-		<p>Drag the colored knobs to adjust the curve. </p>
 	</div>
 
 	<div class="graph">
@@ -240,17 +229,15 @@ canvas {
 	<script src="js/jquery-1.4.4.min.js"></script>
 	<script src="js/jquery-ui-1.8.9.custom.min.js"></script>
 	<script>
-var $p1, $p2, box, $customBezier, $cubicBezier;
 
 $(function() {
-
 	var ctx = $("#bezierCurve").get(0).getContext("2d");
 
-	box = $(".box").get(0);
-	$p1 = $(".p1");
-	$p2 = $(".p2");
-	$customBezier = $("#customBezier");
-	$cubicBezier = $("#cubicBezier");
+	var box = $(".box").get(0);
+	var $p1 = $(".p1");
+	var $p2 = $(".p2");
+	var $customBezier = $("#customBezier");
+	var $cubicBezier = $("#cubicBezier");
 
 	renderWrap(ctx);
 	setTransitionFn();
@@ -292,75 +279,66 @@ $(function() {
 			// console.log($(".box").get(1).style.webkitTransition)
 		}, 2000);
 	});
+
+	function setTransitionFn() {
+		box.style.webkitTransition = "left 1s cubic-bezier(" + $("#p1X").html() + "," + $("#p1Y").html() + ","+$("#p2X").html() + "," + $("#p2Y").html() + ")";
+		box.style.MozTransition = "left 1s cubic-bezier(" + $("#p1X").html() + "," + $("#p1Y").html() + ","+$("#p2X").html() + "," + $("#p2Y").html() + ")";
+	}
+
+	function setDemoValue() {
+		$customBezier.html($cubicBezier.text());
+	}
+
+	function renderWrap(ctx) {
+		var p1 = $p1.position(),
+			p2 = $p2.position();
+
+		render(ctx, {
+			x: p1.left + 5,
+			y: p1.top + 5,
+		}, {
+			x: p2.left + 5,
+			y: p2.top + 5,
+		});
+	};
 });
 
-function setDemoValue() {
-	$customBezier.html($cubicBezier.text());
-}
-
-function setTransitionFn() {
-	box.style.webkitTransition = "left 1s cubic-bezier(" + $("#p1X").html() + "," + $("#p1Y").html() + ","+$("#p2X").html() + "," + $("#p2Y").html() + ")";
-	box.style.MozTransition = "left 1s cubic-bezier(" + $("#p1X").html() + "," + $("#p1Y").html() + ","+$("#p2X").html() + "," + $("#p2Y").html() + ")";
-}
-
-// this just removes leading 0 and truncates values
-function adjustValue(val) {
-	val = val.toFixed(2);
-	val = val.toString().replace("0.", ".").replace("1.00", "1").replace(".00", "0");
-	return val;
-}
-
-function renderWrap(ctx) {
-	var p1 = $p1.position(),
-		p2 = $p2.position();
-
-	render(ctx, {
-		x: p1.left,
-		y: p1.top
-	}, {
-		x: p2.left,
-		y: p2.top
-	});
-};
-
 function render(ctx, p1, p2) {
-	var ctx = ctx;
-	ctx.clearRect(0,0,400,400);
+	ctx.clearRect(0, 0, 400, 400);
 
-	ctx.beginPath();
+
 	ctx.lineWidth = 5;
 	ctx.strokeStyle = "#333";
-	ctx.moveTo(0,400);
-	// p1 (x,y) p2 (x,y)
-	ctx.bezierCurveTo(p1.x,p1.y,p2.x,p2.y,400,0);
-	ctx.stroke();
-	ctx.closePath();
 
 	ctx.beginPath();
+	ctx.moveTo(0, 400);
+	ctx.bezierCurveTo(p1.x, p1.y, p2.x, p2.y, 400, 0);
+	ctx.stroke();
+
+
 	ctx.strokeStyle = "#999";
 	ctx.lineWidth = 1;
-	ctx.moveTo(0,400);
-	// p1 (x,y)
-	ctx.lineTo(p1.x + 5, p1.y + 5);
+
+	ctx.beginPath();
+	ctx.moveTo(0, 400);
+	ctx.lineTo(p1.x, p1.y);
 	ctx.stroke();
 
-	ctx.moveTo(400,0);
-	// p2 (x,y)
-	ctx.lineTo(p2.x + 5, p2.y + 5 );
+	ctx.beginPath();
+	ctx.moveTo(400, 0);
+	ctx.lineTo(p2.x, p2.y);
 	ctx.stroke();
-	ctx.closePath();
 
-	if($.browser.mozilla) {
-		$(".p1X").html( adjustValue( (p1.x) / 400) );
-		$(".p1Y").html( adjustValue( 1 - (p1.y) / 400) );
-		$(".p2X").html( adjustValue( (p2.x) / 400) );
-		$(".p2Y").html( adjustValue( 1 - (p2.y) / 400) );
-	} else {
-		$(".p1X").html( adjustValue( (p1.x + 5) / 400) );
-		$(".p1Y").html( adjustValue( 1 - (p1.y + 4) / 400) );
-		$(".p2X").html( adjustValue( (p2.x + 5) / 400) );
-		$(".p2Y").html( adjustValue( 1 - (p2.y + 4) / 400) );
+
+	function clean(val) {
+		val = val.toFixed(2);
+		val = val.toString().replace("0.", ".").replace("1.00", "1").replace(".00", "0");
+		return val;
 	}
+	$(".p1X").html(clean(p1.x/400));
+	$(".p1Y").html(clean(1 - p1.y/400));
+	$(".p2X").html(clean(p2.x/400));
+	$(".p2Y").html(clean(1 - p2.y/400));
 }
 	</script>
 </body>
