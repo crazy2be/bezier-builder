@@ -35,10 +35,10 @@ body {
 .p2 {
 	background: #666;
 }
-#p1X, #p1Y {
+.p1X, .p1Y {
 	color: #00AEDB;
 }
-#p2X, #p2Y {
+.p2X, .p2Y {
 	color: #666;
 }
 .p0 {
@@ -195,8 +195,6 @@ canvas {
 	</div>
 
 	<div class="demo">
-		<p><a href="#" id="animateBox">Click here</a> to compare transition timing functions:</p>
-
 		<p id="customBezier">cubic-bezier(.24, 1, .25, .90)</p>
 		<div class="box custom" style="-webkit-transition: left 1s cubic-bezier(0.24, 1, 0.25, 0.9);"></div>
 
@@ -214,21 +212,18 @@ canvas {
 	</div>
 
 	<div class="css clear">
-		<code>-webkit-transition: all 1s <span id="cubicBezier">cubic-bezier(<span id="p1X" class="p1X">.24</span>, <span id="p1Y" class="p1Y">1</span>, <span id="p2X" class="p2X">.25</span>, <span id="p2Y" class="p2Y">.90</span>)</span>;</code>
+		<code>-webkit-transition: all 1s <span id="cubicBezier">cubic-bezier(<span class="p1X">.24</span>, <span class="p1Y">1</span>, <span class="p2X">.25</span>, <span class="p2Y">.90</span>)</span>;</code>
 		<br>
-		<code>-moz-transition: all 1s <span id="cubicBezier">cubic-bezier(<span id="p1X" class="p1X">.24</span>, <span id="p1Y" class="p1Y">1</span>, <span id="p2X" class="p2X">.25</span>, <span id="p2Y" class="p2Y">.90</span>)</span>;</code>
+		<code>-moz-transition: all 1s <span id="cubicBezier">cubic-bezier(<span class="p1X">.24</span>, <span class="p1Y">1</span>, <span class="p2X">.25</span>, <span class="p2Y">.90</span>)</span>;</code>
 		<br>
 	</div>
-
-	<h2>References</h2>
-	<ol>
-		<li><a href="http://developer.apple.com/library/safari/#documentation/InternetWeb/Conceptual/SafariVisualEffectsProgGuide/Transitions/Transitions.html#//apple_ref/doc/uid/TP40008032-CH4-SW11" target="_blank">Safari CSS Visual Effects Guide</a></li>
-		<li><a href="http://developer.apple.com/library/safari/#documentation/AppleApplications/Reference/SafariCSSRef/Articles/Functions.html#//apple_ref/css/func/cubic-bezier" target="_blank">Safari cubic-bezier reference</a></li>
-	</ol>
 
 	<script src="js/jquery-1.4.4.min.js"></script>
 	<script src="js/jquery-ui-1.8.9.custom.min.js"></script>
 	<script>
+
+var GRAPH_WIDTH = 400;
+var GRAPH_HEIGHT = 400;
 
 $(function() {
 	var ctx = $("#bezierCurve").get(0).getContext("2d");
@@ -239,80 +234,169 @@ $(function() {
 	var $customBezier = $("#customBezier");
 	var $cubicBezier = $("#cubicBezier");
 
-	renderWrap(ctx);
-	setTransitionFn();
-	setDemoValue();
-
 	$(".p1, .p2").draggable({
 		containment: 'parent',
 		drag: function(event, ui) {
-			renderWrap(ctx);
-			setDemoValue();
+			update();
+			animate();
 		},
-		stop: function(){
-			renderWrap(ctx);
-			setTransitionFn();
-			setDemoValue();
-		}
+		stop: function () {
+			update();
+			animate();
+		},
 	});
 
 	$(".canned-function").click(function(e) {
 		e.preventDefault();
-		var vals = $(this).attr("-data-easing").split(",");
-		$p1.css("left", vals[0] * 400);
-		$p1.css("top", 	(1 - vals[1]) * 400);
-		$p2.css("left", vals[2] * 400);
-		$p2.css("top", 	(1 - vals[3]) * 400);
+		var vals = $(this).attr("data-easing").split(",");
+
+		var pp1 = g2p(b2g({x: vals[0], y: vals[1]}));
+		$p1.css("left", pp1.x);
+		$p1.css("top", pp1.y);
+
+		var pp2 = g2p(b2g({x: vals[2], y: vals[3]}));
+		$p2.css("left", pp2.x);
+		$p2.css("top", pp2.y);
+
+		update();
+	});
+
+	loadState();
+	update();
+	setupLoop();
+
+	function update() {
 		renderWrap(ctx);
 		setTransitionFn();
-		setDemoValue();
-	});
-
-	$("#animateBox").click(function(e){
-		e.preventDefault();
-		var $body = $("body");
-
-		$body.addClass("moveBox");
-
-		setTimeout(function() {
-			$body.removeClass("moveBox");
-			// console.log($(".box").get(1).style.webkitTransition)
-		}, 2000);
-	});
-
-	function setTransitionFn() {
-		box.style.webkitTransition = "left 1s cubic-bezier(" + $("#p1X").html() + "," + $("#p1Y").html() + ","+$("#p2X").html() + "," + $("#p2Y").html() + ")";
-		box.style.MozTransition = "left 1s cubic-bezier(" + $("#p1X").html() + "," + $("#p1Y").html() + ","+$("#p2X").html() + "," + $("#p2Y").html() + ")";
 	}
 
-	function setDemoValue() {
-		$customBezier.html($cubicBezier.text());
+	function animate() {
+		var $body = $("body");
+		reset(function () {
+			$body.addClass("moveBox");
+		});
+	}
+
+	function reset(cb) {
+		var trans = '-webkit-transition-duration';
+		function s(a, id, val) {
+			for (var i = 0; i < a.length; i++) {
+				a[i].style[id] = val;
+			}
+		}
+		var boxes = document.querySelectorAll('.box');
+		s(boxes, trans, '0s');
+		setTimeout(function () {
+			$("body").removeClass("moveBox");
+			setTimeout(function () {
+				s(boxes, trans, '1s');
+				cb();
+			}, 0);
+		}, 0);
+	}
+
+	function setupLoop() {
+		var abox = document.querySelector('.box');
+		abox.addEventListener('webkitTransitionEnd', animate, false)
+	}
+
+	function loadState() {
+		var bp1 = JSON.parse(localStorage["bp1"] || '{"x": 0, "y": 0}');
+		var bp2 = JSON.parse(localStorage["bp2"] || '{"x": 1, "y": 1}');
+		var pp1 = g2p(b2g(bp1));
+		var pp2 = g2p(b2g(bp2));
+		$p1.css('left', pp1.x);
+		$p1.css('top', pp1.y);
+		$p2.css('left', pp2.x);
+		$p2.css('top', pp2.y);
+	}
+
+	function setTransitionFn() {
+		function clean(val) {
+			val = val.toFixed(2);
+			val = val.toString().replace("0.", ".").replace("1.00", "1").replace(".00", "0");
+			return val;
+		}
+		var bp1 = g2b(graphPos($p1));
+		var bp2 = g2b(graphPos($p2));
+
+		localStorage["bp1"] = JSON.stringify(bp1);
+		localStorage["bp2"] = JSON.stringify(bp2);
+
+		var bp1x = clean(bp1.x);
+		var bp1y = clean(bp1.y);
+		var bp2x = clean(bp2.x);
+		var bp2y = clean(bp2.y);
+
+		$(".p1X").html(bp1x);
+		$(".p1Y").html(bp1y);
+		$(".p2X").html(bp2x);
+		$(".p2Y").html(bp2y);
+
+		var interpolate = "cubic-bezier(" + bp1x + "," + bp1y + "," + bp2x + "," + bp2y + ")";
+		$customBezier.text(interpolate);
+
+		var transition = "all 1s " + interpolate;
+		box.style.webkitTransition = transition;
+	}
+
+	function graphPos(elm) {
+		var pos = elm.position();
+		return p2g({
+			x: pos.left,
+			y: pos.top,
+		});
+	}
+
+	// Convert from graph coordinates (0...GRAPH_WIDTH)
+	// to bezier coordinates (0...1). Basically just
+	// scale by the size of the graph, and flip the y
+	// axis.
+	function g2b(point) {
+		return {
+			x: point.x / GRAPH_WIDTH,
+			y: 1 - point.y / GRAPH_HEIGHT,
+		}
+	}
+
+	function b2g(point) {
+		return {
+			x: point.x * GRAPH_WIDTH,
+			y: (1 - point.y) * GRAPH_HEIGHT,
+		}
+	}
+
+	// Convert from page (left top) coordinates to
+	// graph (x y) coordinates.
+	function p2g(point) {
+		return {
+			x: point.x + 5,
+			y: point.y + 5,
+		}
+	}
+
+	function g2p(point) {
+		return {
+			x: point.x - 5,
+			y: point.y - 5,
+		}
 	}
 
 	function renderWrap(ctx) {
-		var p1 = $p1.position(),
-			p2 = $p2.position();
-
-		render(ctx, {
-			x: p1.left + 5,
-			y: p1.top + 5,
-		}, {
-			x: p2.left + 5,
-			y: p2.top + 5,
-		});
+		render(ctx, graphPos($p1), graphPos($p2));
 	};
 });
 
-function render(ctx, p1, p2) {
-	ctx.clearRect(0, 0, 400, 400);
+function render(ctx, gp1, gp2) {
+	ctx.clearRect(0, 0, GRAPH_WIDTH, GRAPH_HEIGHT);
 
 
 	ctx.lineWidth = 5;
 	ctx.strokeStyle = "#333";
 
 	ctx.beginPath();
-	ctx.moveTo(0, 400);
-	ctx.bezierCurveTo(p1.x, p1.y, p2.x, p2.y, 400, 0);
+	ctx.moveTo(0, GRAPH_HEIGHT);
+	ctx.bezierCurveTo(gp1.x, gp1.y, gp2.x, gp2.y, GRAPH_WIDTH, 0);
 	ctx.stroke();
 
 
@@ -320,25 +404,14 @@ function render(ctx, p1, p2) {
 	ctx.lineWidth = 1;
 
 	ctx.beginPath();
-	ctx.moveTo(0, 400);
-	ctx.lineTo(p1.x, p1.y);
+	ctx.moveTo(0, GRAPH_HEIGHT);
+	ctx.lineTo(gp1.x, gp1.y);
 	ctx.stroke();
 
 	ctx.beginPath();
-	ctx.moveTo(400, 0);
-	ctx.lineTo(p2.x, p2.y);
+	ctx.moveTo(GRAPH_WIDTH, 0);
+	ctx.lineTo(gp2.x, gp2.y);
 	ctx.stroke();
-
-
-	function clean(val) {
-		val = val.toFixed(2);
-		val = val.toString().replace("0.", ".").replace("1.00", "1").replace(".00", "0");
-		return val;
-	}
-	$(".p1X").html(clean(p1.x/400));
-	$(".p1Y").html(clean(1 - p1.y/400));
-	$(".p2X").html(clean(p2.x/400));
-	$(".p2Y").html(clean(1 - p2.y/400));
 }
 	</script>
 </body>
